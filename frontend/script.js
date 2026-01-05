@@ -3,30 +3,32 @@
 
 const API = "http://localhost:5000/api";
 
+/* ---------------- SELECTORS ---------------- */
 const selectors = {
-  sidebar: document.getElementById('sidebar'),
-  hamburger: document.getElementById('hamburger'),
-  loginBtn: document.getElementById('loginBtn'),
-  heroLogin: document.getElementById('heroLogin'),
-  ctaSearch: document.getElementById('ctaSearch'),
-  ctaCreate: document.getElementById('ctaCreate'),
-  modalOverlay: document.getElementById('modalOverlay'),
-  modal: document.getElementById('modal'),
-  welcomeText: document.getElementById('welcomeText'),
-  pages: document.querySelectorAll('.page'),
-  navButtons: Array.from(document.querySelectorAll('.nav-btn')),
-  searchInput: document.getElementById('searchInput'),
-  searchBtn: document.getElementById('searchBtn'),
-  alumniListEl: document.getElementById('alumniList'),
-  bookingsList: document.getElementById('bookingsList'),
-  profileInfo: document.getElementById('profileInfo'),
-  bookmarkedList: document.getElementById('bookmarkedList')
+  sidebar: document.getElementById("sidebar"),
+  hamburger: document.getElementById("hamburger"),
+  loginBtn: document.getElementById("loginBtn"),
+  heroLogin: document.getElementById("heroLogin"),
+  ctaSearch: document.getElementById("ctaSearch"),
+  ctaCreate: document.getElementById("ctaCreate"),
+  modalOverlay: document.getElementById("modalOverlay"),
+  modal: document.getElementById("modal"),
+  welcomeText: document.getElementById("welcomeText"),
+  pages: document.querySelectorAll(".page"),
+  navButtons: Array.from(document.querySelectorAll(".nav-btn")),
+  searchInput: document.getElementById("searchInput"),
+  searchBtn: document.getElementById("searchBtn"),
+  alumniListEl: document.getElementById("alumniList"),
+  bookingsList: document.getElementById("bookingsList"),
+  profileInfo: document.getElementById("profileInfo"),
+  bookmarkedList: document.getElementById("bookmarkedList")
 };
 
 const templates = {
-  alumniCard: document.getElementById('alumniCardTpl')
+  alumniCard: document.getElementById("alumniCardTpl")
 };
 
+/* ---------------- STATE ---------------- */
 let state = {
   student: null,
   alumni: [],
@@ -41,9 +43,7 @@ async function init() {
   selectors.heroLogin.onclick = openLoginModal;
   selectors.ctaSearch.onclick = () => navigateTo("search");
   selectors.ctaCreate.onclick = () => navigateTo("createAlumni");
-  selectors.navButtons.forEach(b =>
-    b.onclick = () => navigateTo(b.dataset.route)
-  );
+  selectors.navButtons.forEach(b => b.onclick = () => navigateTo(b.dataset.route));
   selectors.searchBtn.onclick = handleSearch;
 
   document.getElementById("saveStudent").onclick = saveStudentFromForm;
@@ -61,11 +61,16 @@ window.onload = init;
 
 /* ---------------- LOAD DATA ---------------- */
 async function loadInitialData() {
-  state.alumni = await fetch(`${API}/alumni`).then(r => r.json());
-  state.bookings = await fetch(`${API}/bookings`).then(r => r.json());
-  renderAlumniList(state.alumni);
-  renderBookings();
-  renderProfile();
+  try {
+    state.alumni = await fetch(`${API}/alumni`).then(r => r.json());
+    state.bookings = await fetch(`${API}/bookings`).then(r => r.json());
+    state.bookmarks = await fetch(`${API}/bookmarks`).then(r => r.json());
+    renderAlumniList(state.alumni);
+    renderBookings();
+    renderProfile();
+  } catch {
+    alert("Backend server is not running");
+  }
 }
 
 /* ---------------- SIDEBAR ---------------- */
@@ -93,11 +98,11 @@ function openLoginModal() {
   `);
 
   document.getElementById("mLogin").onclick = async () => {
-    const name = mName.value.trim();
-    const college = mCollege.value.trim();
+    const name = document.getElementById("mName").value.trim();
+    const college = document.getElementById("mCollege").value.trim();
     if (!name || !college) return alert("Fill all fields");
 
-    const res = await fetch(`${API}/student/login`, {
+    const res = await fetch(`${API}/students`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, college })
@@ -112,7 +117,7 @@ function openLoginModal() {
 }
 
 function saveStudentFromForm() {
-  alert("Student saved via login only (backend controlled)");
+  alert("Please login using the Login button");
 }
 
 function updateWelcome() {
@@ -126,17 +131,17 @@ function updateWelcome() {
 /* ---------------- ALUMNI ---------------- */
 async function saveAlumniFromForm() {
   const alumni = {
-    name: alumnName.value,
-    company: alumnCompany.value,
-    role: alumnRole.value,
-    timing: alumnTiming.value,
-    skills: alumnSkills.value.split(",").map(s => s.trim()),
+    name: alumnName.value.trim(),
+    company: alumnCompany.value.trim(),
+    role: alumnRole.value.trim(),
+    timing: alumnTiming.value.trim(),
+    skills: alumnSkills.value.split(",").map(s => s.trim()).filter(Boolean),
     fees: alumnFees.value || "Free",
-    certs: alumnCerts.value.split(",").map(c => c.trim())
+    certs: alumnCerts.value.split(",").map(c => c.trim()).filter(Boolean)
   };
 
   if (!alumni.name || alumni.skills.length === 0)
-    return alert("Name & skills required");
+    return alert("Name and skills required");
 
   await fetch(`${API}/alumni`, {
     method: "POST",
@@ -167,10 +172,11 @@ function renderAlumniList(list) {
   list.forEach(alum => {
     const node = templates.alumniCard.content.cloneNode(true);
     node.querySelector(".alumn-name").textContent = alum.name;
-    node.querySelector(".alumn-meta").textContent = `${alum.role} • ${alum.company}`;
-    node.querySelector(".alumn-fees").textContent = `Fee: ${alum.fees}`;
+    node.querySelector(".alumn-meta").textContent = `${alum.role || ""} • ${alum.company || ""}`;
+    node.querySelector(".alumn-fees").textContent = `Fee: ${alum.fees || "Free"}`;
+
     const skillsWrap = node.querySelector(".alumn-skills");
-    alum.skills.forEach(s => {
+    (alum.skills || []).forEach(s => {
       const span = document.createElement("span");
       span.className = "skill";
       span.textContent = s;
@@ -178,20 +184,29 @@ function renderAlumniList(list) {
     });
 
     node.querySelector(".book-btn").onclick = () => openBookingModal(alum);
-    node.querySelector(".view-btn").onclick = () => openViewModal(alum);
+
+    node.querySelector(".bookmark-btn").onclick = async () => {
+      await fetch(`${API}/bookmarks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alumniId: alum.id })
+      });
+      alert("Bookmarked");
+    };
+
     selectors.alumniListEl.appendChild(node);
   });
 }
 
 /* ---------------- BOOKING ---------------- */
-async function openBookingModal(alum) {
+function openBookingModal(alum) {
   openModal(`
     <h3>Book ${alum.name}</h3>
     <button id="confirmBook" class="btn btn-primary">Confirm</button>
     <button id="cancelBook" class="btn btn-outline">Cancel</button>
   `);
 
-  confirmBook.onclick = async () => {
+  document.getElementById("confirmBook").onclick = async () => {
     if (!state.student) return alert("Login required");
 
     await fetch(`${API}/bookings`, {
@@ -208,13 +223,12 @@ async function openBookingModal(alum) {
       })
     });
 
-    alert("Booking successful");
     closeModal();
     state.bookings = await fetch(`${API}/bookings`).then(r => r.json());
     renderBookings();
   };
 
-  cancelBook.onclick = closeModal;
+  document.getElementById("cancelBook").onclick = closeModal;
 }
 
 /* ---------------- BOOKINGS LIST ---------------- */
@@ -226,7 +240,15 @@ function renderBookings() {
     div.innerHTML = `
       <strong>${b.alumniName}</strong>
       <div>${new Date(b.slot).toLocaleString()}</div>
+      <button class="btn btn-outline">Cancel</button>
     `;
+
+    div.querySelector("button").onclick = async () => {
+      await fetch(`${API}/bookings/${b.id}`, { method: "DELETE" });
+      state.bookings = state.bookings.filter(x => x.id !== b.id);
+      renderBookings();
+    };
+
     selectors.bookingsList.appendChild(div);
   });
 }
