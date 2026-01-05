@@ -1,0 +1,180 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>InfiniteLearning — AlumniConnect</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button id="hamburger" class="hamburger" aria-label="Open menu">☰</button>
+    <div class="brand">
+      <div class="brand-left">Infinite<span class="brand-accent">Learning</span></div>
+      <div class="brand-sub">RIGHT<span class="brand-accent small">Connect</span></div>
+    </div>
+    <div class="top-right">
+      <div id="welcomeText" class="welcome-text">Welcome</div>
+      <button id="loginBtn" class="btn btn-outline">Login</button>
+    </div>
+  </header>
+
+  <aside id="sidebar" class="sidebar">
+    <nav>
+      <ul>
+        <li><button data-route="home" class="nav-btn">🏠 Home</button></li>
+        <li><button data-route="student" class="nav-btn">🎓 Student</button></li>
+        <li><button data-route="createAlumni" class="nav-btn">➕ Create Alumni</button></li>
+        <li><button data-route="profile" class="nav-btn">👤 Profile</button></li>
+        <li><button data-route="bookings" class="nav-btn">📅 Bookings</button></li>
+        <li><button data-route="search" class="nav-btn">🔎 Search Alumni</button></li>
+      </ul>
+
+      <div class="filters-block">
+        <h4>Quick filters</h4>
+        <div class="quick-filters">
+          <button class="filter-tag">Java</button>
+          <button class="filter-tag">SQL</button>
+          <button class="filter-tag">CSS</button>
+          <button class="filter-tag">React</button>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <!-- HOME -->
+    <section id="home" class="page show">
+      <div class="hero">
+        <div class="hero-left">
+          <h1>Connect with alumni. Learn from their journey.</h1>
+          <p>Find mentors, book sessions and attend workshops — all in one place.</p>
+          <div class="hero-cta">
+            <button id="ctaSearch" class="btn btn-primary">Find Alumni</button>
+            <button id="ctaCreate" class="btn btn-accent">Create Alumni Profile</button>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="card welcome-card">
+            <h3 id="heroWelcome">Welcome</h3>
+            <p id="heroSub">Enter as a student to personalize your experience.</p>
+            <button id="heroLogin" class="btn btn-outline">Login as Student</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDENT -->
+    <section id="student" class="page">
+      <div class="card">
+        <h2>Student Profile</h2>
+        <form id="studentForm" class="form-grid">
+          <label>Student name
+            <input id="studentName" placeholder="Your full name" />
+          </label>
+          <label>College name
+            <input id="studentCollege" placeholder="College / University" />
+          </label>
+          <div class="form-actions">
+            <button id="saveStudent" class="btn btn-primary" type="button">Save</button>
+            <button id="toHome" class="btn btn-outline" type="button">Go Home</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- CREATE ALUMNI -->
+    <section id="createAlumni" class="page">
+      <div class="card">
+        <h2>Create Alumni Profile</h2>
+        <form id="alumniForm" class="form-grid">
+          <label>Full name <input id="alumnName" placeholder="Alumni name" /></label>
+          <label>Company <input id="alumnCompany" placeholder="Current company" /></label>
+          <label>Role <input id="alumnRole" placeholder="Role / title" /></label>
+          <label>Flexible timing (free text)
+            <input id="alumnTiming" placeholder="e.g. Mon evenings, Weekends"/>
+          </label>
+          <label>Skills (comma separated)
+            <input id="alumnSkills" placeholder="Java, SQL, CSS" />
+          </label>
+          <label>Fees (per session)
+            <input id="alumnFees" placeholder="e.g. 500 (INR)" />
+          </label>
+          <label>Certifications (comma separated)
+            <input id="alumnCerts" placeholder="AWS, GCP, etc." />
+          </label>
+
+          <div class="form-actions">
+            <button id="saveAlumni" class="btn btn-primary" type="button">Save</button>
+            <button id="clearAlumni" class="btn btn-outline" type="button">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEARCH -->
+    <section id="search" class="page">
+      <div class="card">
+        <h2>Search Alumni</h2>
+        <div class="search-bar">
+          <input id="searchInput" placeholder="Type skills (eg: Java SQL) or name..." />
+          <button id="searchBtn" class="btn btn-primary">Search</button>
+        </div>
+
+        <div id="alumniList" class="cards-grid">
+          <!-- alumni cards injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOKINGS -->
+    <section id="bookings" class="page">
+      <div class="card">
+        <h2>Your Bookings</h2>
+        <div id="bookingsList" class="bookings-list">
+          <!-- bookings injected -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE (bookmarks & quick info) -->
+    <section id="profile" class="page">
+      <div class="card">
+        <h2>Profile & Bookmarks</h2>
+        <div id="profileInfo"></div>
+        <h3>Bookmarks</h3>
+        <div id="bookmarkedList" class="cards-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div id="modal" class="modal card">
+      <!-- content replaced dynamically -->
+    </div>
+  </div>
+
+  <!-- templates (hidden) -->
+  <template id="alumniCardTpl">
+    <div class="alumni-card card">
+      <header>
+        <h4 class="alumn-name"></h4>
+        <div class="alumn-meta"></div>
+      </header>
+      <div class="alumn-body">
+        <div class="alumn-skills"></div>
+        <div class="alumn-fees"></div>
+      </div>
+      <footer class="alumn-actions">
+        <button class="btn btn-primary book-btn">Book</button>
+        <button class="btn btn-outline view-btn">View</button>
+        <button class="btn bookmark-btn">Bookmark</button>
+      </footer>
+    </div>
+  </template>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
